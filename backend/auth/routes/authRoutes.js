@@ -59,64 +59,7 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET
 });
 
-router.post('/create-order', verifyToken, async (req, res) => {
-  try {
-    const { amount, currency = 'INR', receipt, courseId } = req.body;
 
-    if (!amount || isNaN(amount)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Valid amount is required'
-      });
-    }
-
-    if (!courseId || !mongoose.Types.ObjectId.isValid(courseId)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Valid course ID is required'
-      });
-    }
-
-    const amountInPaise = Math.round(amount * 100);
-
-    const shortReceipt = `crse_${Date.now()}`.slice(0, 40); // Example: "crse_1744137706852" (17 chars)
-
-    // Create order
-    const order = await razorpay.orders.create({
-      amount: amountInPaise,
-      currency,
-      receipt: shortReceipt, // Using the shorter receipt ID
-      payment_capture: 1,
-      notes: {
-        courseId,
-        userId: req.user.id,
-        fullReceipt: receipt // Store the original receipt in notes if needed
-      }
-    });
-
-    console.log("Order created successfully:", order.id);
-    res.status(200).json({
-      success: true,
-      message: 'Order created successfully',
-      order: {
-        id: order.id,
-        amount: order.amount,
-        currency: order.currency,
-        receipt: order.receipt,
-        status: order.status
-      }
-    });
-
-  } catch (error) {
-    console.error('Error creating order:', error);
-    res.status(400).json({ // Changed to 400 since Razorpay returns 400 for validation errors
-      success: false,
-      message: 'Failed to create order',
-      error: error.error?.description || error.message
-    });
-  }
-});
-// Add Course to User Endpoint
 router.post("/add-buy-course", verifyToken, async (req, res) => {
   try {
     const { courseId, paymentData } = req.body;
@@ -145,17 +88,7 @@ router.post("/add-buy-course", verifyToken, async (req, res) => {
       });
     }
 
-    // Payment verification
 
-
-      // Generate signature
-
-
-
-      // Verify payment status
-
-
-    // Add course to user
     user.buy_course.push(courseId);
     await user.save();
 
